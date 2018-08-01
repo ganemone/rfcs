@@ -1,6 +1,5 @@
 * Start Date: 2018-08-01
-* RFC PR: 
-* Fusion Issue: 
+* RFC PR: https://github.com/fusionjs/rfcs/pull/8
 
 # Summary
 
