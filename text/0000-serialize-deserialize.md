@@ -15,14 +15,14 @@ export default createPlugin({
     SharedState: SharedStateToken,
   },
   middleware: ({SharedState}) => {
-    const {serialize, deserialize} = SharedState('some-id');
     return (ctx, next) => {
+      const {serialize, deserialize} = SharedState(ctx, 'some-id');
       if (__BROWSER__) {
         // load and parse serialized data from dom node
         const data = deserialize();
       } else {
         // serialize json data into body
-        serialize(ctx, {
+        serialize({
           some: 'json',
         });
       }
@@ -79,14 +79,14 @@ export default createPlugin({
     SharedState: SharedStateToken,
   },
   middleware: ({SharedState}) => {
-    const {serialize, deserialize} = SharedState('some-id');
     return (ctx, next) => {
+      const {serialize, deserialize} = SharedState(ctx, 'some-id');
       if (__BROWSER__) {
         // load and parse serialized data from dom node
         const data = deserialize();
       } else {
         // serialize json data into body
-        serialize(ctx, {
+        serialize({
           some: 'json',
         });
       }
@@ -128,16 +128,12 @@ import {createToken, html, SharedStateToken} from 'fusion-core';
 import ReduxPlugin, {ReduxToken} from 'fusion-plugin-react-redux';
 import transit from 'transit-immutable-js';
 
-const ImmutableSharedState = (id) => {
-  return {
-    serialize: (ctx, data) => {
-      ctx.template.body.push(
-        html`<div id='${id}'>${transit.toJSON(data)}</div>`
-      );
-    },
-    deserialize: () => {
-      return transit.fromJSON(document.getElementById(id).textContent);
-    }
+const ImmutableSharedState = {
+  serialize: (data) => {
+    return transit.toJSON(data)
+  },
+  deserialize: (serializedData) => {
+    return transit.fromJSON(serializedData);
   }
 }
 const ImmutableSharedStateToken = createToken('ImmutableSharedState');
