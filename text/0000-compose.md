@@ -90,7 +90,9 @@ type composePlugins<T> = (plugins: Array<FusionPlugin<any, T>, composeFn: (value
 
 # Drawbacks
 
-This approach still requires a centralized place where plugins are composed.
+This approach still requires a centralized place where plugins are composed. This can be somewhat restrictive when working with a large number of plugins that need
+to be composed (upwards of 50 to 100). Having a API which allows distributed composition provides more flexibility when managing code organization. For example, it
+would support organizing by feature rather than by type. However, this rigidity could also provide benefits to readability and debuggability. 
 
 # Alternatives
 
