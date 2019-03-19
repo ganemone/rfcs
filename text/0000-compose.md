@@ -4,29 +4,27 @@
 
 # Summary
 
-This adds support for composing plugins via `app.compose`, and updates the `createToken` API to
-add an optional compose function as the second argument.
+This adds support for composing plugins via the `composePlugins` API.
 
 # Basic example
 
 ```js
-const ComposeExampleToken = createToken('ComposeExampleToken', (items) => {
+import {composePlugins} from 'fusion-core';
+function composeSum(items) {
   return items.reduce((sum, item) => {
     return sum + item;
   }, 0);
-});
+}
+app.register(ComposeExampleToken, composePlugins([
+  createPlugin({
+    provides: () => 2
+  }),
+  createPlugin({
+    provides: () => 3
+  }),
+]));
 
-app.compose(ComposeExampleToken, 2);
-app.compose(ComposeExampleToken, 3);
-
-app.register(createPlugin({
-  deps: {
-    composeExample: ComposeExampleToken
-  },
-  provides: ({composeExample}) {
-    console.log(composeExample); // 5
-  }
-}));
+// ComposeExampleToken => 5
 ```
 
 # Motivation
@@ -42,6 +40,11 @@ becomes restrictive to manage separate tokens for each separate schema.
 A real life use case of `app.compose` would be managing graphql schemas.
 
 ```js
+const TokenA = createToken('TokenA');
+const TokenB = createToken('TokenB');
+const TokenC = createToken('TokenC');
+const TokenD = createToken('TokenD');
+const TokenE = createToken('TokenE');
 // Old way
 app.register(TokenA, SchemaA);
 app.register(TokenB, SchemaB);
@@ -67,47 +70,55 @@ This becomes exceedingly difficult as the number of schemas increases. With the 
 
 ```js
 // new way
-const SchemaToken = createToken('SchemaToken', mergeSchemas);
-app.compose(SchemaToken, SchemaA);
-app.compose(SchemaToken, SchemaB);
-app.compose(SchemaToken, SchemaC);
-app.compose(SchemaToken, SchemaD);
-app.compose(SchemaToken, SchemaE);
+app.register(SchemaToken, composePlugins([SchemaA, SchemaB, SchemaC, SchemaD, SchemaE], composeFn));
 ```
 
 Another real life use case could be managing redux store enhancers.
 
 ```js
-app.compose(ReduxEnhancerToken, enhancerA)
-app.compose(ReduxEnhancerToken, enhancerB)
-app.compose(ReduxEnhancerToken, enhancerC)
+app.register(ReduxEnhancerToken, composePlugins([enhancerA, enhancerB, enhancerC], composeFn)
 ```
 
 # Detailed design
 
-This RFC proposes two nonbreaking API changes which would support managing plugin composition.
+This RFC proposes a new export from `fusion-core`: `composePlugins`. The `composePlugins` function will take a list of plugins and a compose function which
+will be used to compose their resolved values. 
 
-1. `createToken` will take a second optional paramter: composeFn which will be used in the case where plugins are registered via `app.compose`.
-2. `app.compose` will be added to the app class which will have the same type signature as `app.register`.
-
-app.compose will throw if the provided token does not have a compose function. During the dependency resolution process, all plugins registered via app.compose
-will be resolved by calling the corresponding compose function. 
-
-app.register overrides any previous values registered on the token, same as its current behavior. 
-
-app.compose overrides a previously registered value via app.register.
-
-Enhancers apply to composed registrations after composition.
-
-- `app.register(TokenA, PluginA)` => TokenA is implemented by PluginA. It may be enhanced in the future, or overwritten via the DI system.
-- `app.compose(TokenA, PluginA)` => PluginA will be composed with other Plugins registered onto TokenA. They may be enhanced in the future, or overwritten via the DI system
-- `app.enhance(TokenA, PluginA)` => PluginA will enhance the existing value on TokenA. This can be commonly used for things like adding caching wrappers. The enhancer is not an implementation of the token.
+The type definition will look something like this:
+```js
+type composePlugins<T> = (plugins: Array<FusionPlugin<any, T>, composeFn: (values: Array<T>) => T): FusionPlugin<any, T>;
+```
 
 # Drawbacks
 
-Increased API surface area is the biggest drawback IMO. The addition of this API does create situations where there are multiple possible
-ways of setting up various DI graphs. 
+This approach still requires a centralized place where plugins are composed.
 
 # Alternatives
 
-One alternative is continuing with the current model of managing plugin composition by putting each item onto unique tokens.
+One alternative is to add an `app.compose` method which would allow plugins to be composed with the compose function associated with a token. This would
+have the benefit of more easily allowing more distributed registrations across files without a central place for composition. However it has a few downsides
+
+- app.compose would not be tree shakable
+- the compose function would not have access to the DI tree, and therefore could not declare dependencies
+
+There are various minor alternatives with respect to naming and argument order. A few examples:
+
+```js
+import {createComposedPlugin} from 'fusion-core'
+createComposedPlugin(plugins, compose);
+```
+
+```js
+import {composePlugins} from 'fusion-core'
+composePlugins({plugins, compose});
+```
+
+```js
+import {composePlugins} from 'fusion-core'
+composePlugins(compose, plugins);
+```
+
+```js
+import {composePlugins} from 'fusion-core'
+composePlugins(compose)(plugins);
+```
