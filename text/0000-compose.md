@@ -22,7 +22,7 @@ app.register(ComposeExampleToken, composePlugins([
   createPlugin({
     provides: () => 3
   }),
-]));
+]), composeSum);
 
 // ComposeExampleToken => 5
 ```
@@ -36,8 +36,7 @@ becomes restrictive to manage separate tokens for each separate schema.
 
 ## Use Cases
 
-
-A real life use case of `app.compose` would be managing graphql schemas.
+A real life use case of `composePlugins` would be managing graphql schemas.
 
 ```js
 const TokenA = createToken('TokenA');
