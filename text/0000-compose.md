@@ -81,11 +81,11 @@ app.register(ReduxEnhancerToken, composePlugins([enhancerA, enhancerB, enhancerC
 # Detailed design
 
 This RFC proposes a new export from `fusion-core`: `composePlugins`. The `composePlugins` function will take a list of plugins and a compose function which
-will be used to compose their resolved values. 
+will be used to compose their resolved values. The compose function can also return a plugin which will resolve to the composed value.
 
 The type definition will look something like this:
 ```js
-type composePlugins<T> = (plugins: Array<FusionPlugin<any, T>, composeFn: (values: Array<T>) => T): FusionPlugin<any, T>;
+type composePlugins<T> = (plugins: Array<FusionPlugin<any, T>, composeFn: (values: Array<T>) => T || FusionPlugin<any, T>): FusionPlugin<any, T>;
 ```
 
 # Drawbacks
