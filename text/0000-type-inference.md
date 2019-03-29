@@ -120,7 +120,7 @@ would be replacing the `service` generic with `any` in the return type of `creat
 the properties as covariant.
 
 ```js
-type CreatePluginArgs<+Deps, +Service> = {|
+type CreatePluginArgs<+Deps, Service> = {|
   +deps?: Deps,
   +provides?: (Deps: $ObjMap<Deps & {}, ExtractReturnType>) => Service,
   +middleware?: (
@@ -144,6 +144,8 @@ function createPlugin<Deps, Service>(p: CreatePluginArgs<Deps, Service>): Fusion
   // ...
 }
 ```
+
+[Try Flow Link](https://flow.org/try/#0C4TwDgpgBAogHsATgQwMbAEoWAV0QOwBVxoBeKAHgDUA+ACjoEopSaornX2BuKPqAFChIUALIBLACaSANhADuyRGSjJ8IbkJJQAwsuTAIABRk4A5uPwBBRGYDOFANQARCGDsAaKAGUIiAG7iqBBs5ADeAD6CfI6SbnYA-ABcUK7uHgIxYIgA9oFxiSl0aXYpACQA8gBGAFaiyGAUJVAAZFBhAL5e8EhomNh4RCQ0nGy+AUEQGTEAtlKyCkoQyVB0mfwl5dV1DU3xre1dsAgo6Fi4BMSQNNP844HBKfeT66Ni83KKyreOqHJqODAKzodj8DwgTzBkzeRlyc1BFH8OSkNwEEQ6mn4gmE0AAYjg7OIcvgTOZLE4Sl5HM9gqF2hF1rF4itKYzsnkpBBCqtNlBKrV6o1mm1Ot0Tn1zoMriE3jSpoy5tJPktges+Lz+TshfsRUceqd+hchtdbnw5Sk1CBolA3hIlYtvoy-hAAUCiqCJo9VOoYXDxAikSiMujMfwBAAzHD4dBE-BQVD6Qykiz4PbpHxQ2l0JT2FJ6F1J0wpmz2NOeDOemUpfGE4nJ8mUivgthhNX8ZRG1S2OyaDptgSoYl2YBQQg5ADWEGsLFWbwA5HPNIP8MPRxOpwAhGdMFhsACsob4AggcDAOUQI+Xq-rcfICYLxiLljoraxfDi7hSr7ffGQKTHk7WKab5VP+674BuwF8F0bZ8Oy+Rci+yBeFUHTMK2ACQGEdoMUAHrBUAwT+ioLF8EBIShaHtARfA4QQqzoHAXj4CewBvN+P60QM9EsQgTCHm+fY-kRb7Oq6IIQDI4boTRUB0XGsI5PCEAAHTKHYOQyP45GMAJ0ECGh3BAA)
 
 This will allow us to get type inference with fusion plugins across module boundaries while still getting all the performance benefits of the types first
 flow architecture and keeping all the same type safety for fusion consumers.
